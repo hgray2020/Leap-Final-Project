@@ -1,5 +1,6 @@
-void player() {
 
+void player() {
+Skeleton blep = dummies.get(0);
   player.act();
 
   if (!keys['y'] && !keys['t'] && !runFlip) {
@@ -11,22 +12,22 @@ void player() {
 
   if (keyPressed) {
     if (!keys['f']) {
-      if (key == 'a' && player.leftShin.runAni <= 1) {
-        player.runDir = true;
-        for (Spring s : player.bones) {
+      if (key == 'a' && blep.leftShin.runAni <= 1) {
+        blep.runDir = true;
+        for (Spring s : blep.bones) {
           s.running = true;
         }
       }
-      if (key == 'd' && player.leftShin.runAni <= 1) {
-        player.runDir = false;
-        for (Spring s : player.bones) {
+      if (key == 'd' && blep.leftShin.runAni <= 1) {
+        blep.runDir = false;
+        for (Spring s : blep.bones) {
           s.running = true;
         }
       }
     }
   } else {
     if (!leapControl) {
-      for (Spring s : player.bones) {
+      for (Spring s : blep.bones) {
         s.runAni = 0;
       }
     }
@@ -100,7 +101,7 @@ void pwalls() {
   }
   if (!player.ragdoll) {
     //println(player.leftShin.y);
-    if (player.leftShin.y > height-groundY && (player.leftShin.jumpAni >= 172 || player.leftShin.jumpAni <=160) && (player.leftShin.slamAni > 172 || player.leftShin.slamAni <=160) && (player.rightShin.slamAni < 10 || player.rightShin.slamAni > 60)) {
+    if (player.leftShin.y > height-groundY && (player.leftShin.jumpAni >= 192 || player.leftShin.jumpAni <=160) && (player.leftShin.slamAni > 172 || player.leftShin.slamAni <=160) && (player.rightShin.slamAni < 10 || player.rightShin.slamAni > 60)) {
       player.body.onGround = true;
       player.body.position.y = (height-groundY)-((player.leftShin.y-player.body.position.y));
 
@@ -118,7 +119,7 @@ void pwalls() {
           player.body.applyForce(new PVector(xforce, yforce));
         }
       }
-    } else if (player.rightShin.y > height-groundY && (player.rightShin.jumpAni >= 172 || player.rightShin.jumpAni <=160) && (player.leftShin.slamAni > 172 || player.leftShin.slamAni <=160) && (player.rightShin.slamAni < 10 || player.rightShin.slamAni > 60)) {
+    } else if (player.rightShin.y > height-groundY && (player.rightShin.jumpAni >= 192 || player.rightShin.jumpAni <=160) && (player.leftShin.slamAni > 172 || player.leftShin.slamAni <=160) && (player.rightShin.slamAni < 10 || player.rightShin.slamAni > 60)) {
       player.body.onGround = true;
       player.body.position.y = (height-groundY)-((player.rightShin.y-player.body.position.y));
       if (player.rightShin.slamAni < 40 || player.rightShin.slamAni > 60) {

@@ -26,6 +26,9 @@ class Skeleton {
 
   ArrayList<Spring> bones = new ArrayList<Spring>();
   boolean ragdoll = false;
+  float kickcdc = round(random(200, 1000)); //kick cooldown constant
+  float kickcd = kickcdc; //kick cooldown
+
 
   Skeleton(PVector pos, int p, boolean pl) {
     pri = p;
@@ -84,20 +87,26 @@ class Skeleton {
       pushMatrix();
       translate(body.position.x, body.position.y);
       rotate(tempAng+PI);
-      
+
       imageMode(CENTER);
       if (play) {
-        println(body.ang);
+        
         if (leftShin.flipAni <= 0 && leftShin.runAni <= 0 && (leftShin.slamAni >= 60 || leftShin.slamAni <= 0)) {
           image(pHeadFront, 0, body.bLen*-0.82, 50*scale, 50*scale);
         } else if ((leftShin.flipAni > 0 && !leftShin.flipLeft) || (leftShin.runAni > 0 && leftShin.runLeft) || (leftShin.slamAni < 60 && leftShin.slamAni > 0 && leftShin.slamLeft)) {
           image(pHeadLeft, 0, body.bLen*-0.82, 50*scale, 50*scale);
         } else if ((leftShin.flipAni > 0 && leftShin.flipLeft) || (leftShin.runAni > 0 && !leftShin.runLeft) || (leftShin.slamAni < 104 && !leftShin.slamLeft)) {
           image(pHeadRight, 0, body.bLen*-0.82, 50*scale, 50*scale);
-        } 
+        }
       } else { 
 
-        rect(0, body.bLen*-0.82, 50*scale, 50*scale);
+        if (leftShin.flipAni <= 0 && leftShin.runAni <= 0 && (leftShin.slamAni >= 60 || leftShin.slamAni <= 0)) {
+          image(eHeadFront, 0, body.bLen*-0.82, 50*scale, 50*scale);
+        } else if ((leftShin.flipAni > 0 && !leftShin.flipLeft) || (leftShin.runAni > 0 && leftShin.runLeft) || (leftShin.slamAni < 60 && leftShin.slamAni > 0 && leftShin.slamLeft)) {
+          image(eHeadLeft, 0, body.bLen*-0.82, 50*scale, 50*scale);
+        } else if ((leftShin.flipAni > 0 && leftShin.flipLeft) || (leftShin.runAni > 0 && !leftShin.runLeft) || (leftShin.slamAni < 104 && !leftShin.slamLeft)) {
+          image(eHeadRight, 0, body.bLen*-0.82, 50*scale, 50*scale);
+        }
       }
       rectMode(CORNER);
       popMatrix();
@@ -130,7 +139,7 @@ class Skeleton {
     //neck.ang = 90;
     //println(body.velocity.mag());
     if (!play) {
-      if (body.velocity.mag() > 20) {
+      if (body.velocity.mag() > 2000) {
         ragdoll = true;
         ragdollcd = 180;
         for (Spring s : bones) {
@@ -141,7 +150,7 @@ class Skeleton {
     if (ragdollcd > 0 && body.onGround) {
       ragdollcd--;
     }
-    if (ragdollcd == 0) {
+    if (ragdollcd <= 0) {
       ragdoll = false;
     }
     for (Spring s : bones) {
@@ -177,6 +186,22 @@ class Skeleton {
   }
 
   void act() {
+    if (!play) {
+      if (kickcd == 0) {
+        for (Spring b : bones) {
+          b.kicking = true;
+          b.kickLeft = body.position.x > player.body.position.x;
+        }
+        kickcd = kickcdc;
+      }
+      if(kickcd < 25 || leftShin.kickAni > 190 || leftShin.kicking){
+        imageMode(CENTER);
+        image(warning, body.position.x, body.position.y-150, 30, 90);
+      }
+      if (kickcd > 0) {
+        kickcd--;
+      }
+    }
 
     update();
     display();

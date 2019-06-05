@@ -1,3 +1,11 @@
+//JUST A HEADS UP: There's some code no longer in use in here somewhere, probably in the Bone Tab. Because of how long it took to get ragdoll to work, I'm scared to
+//delete it even though I'm pretty sure it serves no purpose. Just letting the reader know so they don't get to confused as to the function of certain 
+//functions. The spring class name is from some code I copied in making ragdoll. The name stuck, but most of the copied code didn't.
+
+//Also some variable names aren't great. :/
+
+
+
 import de.voidplus.leapmotion.*;
 ArrayList<Enemy> enemies = new ArrayList<Enemy>();
 float scale = 1;
@@ -34,6 +42,13 @@ PImage parmText;
 PImage pHeadFront;
 PImage pHeadLeft;
 PImage pHeadRight;
+PImage eHeadFront;
+PImage eHeadLeft;
+PImage eHeadRight;
+PImage pLeg;
+PImage pBody;
+PImage parmLeft;
+PImage warning;
 Skeleton player = new Skeleton(new PVector(1250, 1050), 0, true);
 float kickX;
 float kickY;
@@ -41,6 +56,12 @@ Point ttop = new Point(0, 0);
 Point tbottom = new Point(0, 0);
 boolean runFlip = false;
 boolean runFlipL = false;
+boolean blink = false;
+float blinkcdc = 15;
+float blinkcd = blinkcdc;
+float maxHealth = 20;
+float health = maxHealth;
+
 
 boolean[]keys=new boolean[255];
 boolean leapControl = false;
@@ -64,11 +85,12 @@ void keyReleased() {
 
 
 void setup() {
+
   size(2500, 1500);
   leap = new LeapMotion(this);
-  frameRate(6);
+  frameRate(60);
   for (int i = 0; i < 5; i++) {
-    dummies.add(new Skeleton(new PVector(100+(i*150), 1050), i+1, false));
+    dummies.add(new Skeleton(new PVector(1250+(i*150), 1050), i+1, false));
   }
   armTexture = loadImage("arm.png");
   forearmTexture = loadImage("forearm.png");
@@ -77,6 +99,13 @@ void setup() {
   pHeadFront = loadImage("pheadfront.png");
   pHeadLeft = loadImage("pheadleft.png");
   pHeadRight = loadImage("pheadright.png");
+  eHeadFront = loadImage("eheadfront.png");
+  eHeadLeft = loadImage("eheadleft.png");
+  eHeadRight = loadImage("eheadright.png");
+  pBody = loadImage("pbody.png");
+  pLeg = loadImage("pleg.png");
+  parmLeft = loadImage("parmleft.png");
+  warning = loadImage("ohno.png");
 }
 
 
@@ -85,6 +114,9 @@ void draw() {
   background(0);
   noStroke();
   fill(60);
+  fill(255);
+  textSize(40);
+  text("Health: "+health, 50, 50);
   freeze();
   suck();
 

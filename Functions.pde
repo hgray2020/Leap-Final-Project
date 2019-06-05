@@ -109,7 +109,7 @@ void walls() {
       }
     }
     if (!dummy.ragdoll) {
-      //println(dummy.leftShin.y);
+      ////println(dummy.leftShin.y);
       if (dummy.leftShin.y > height-groundY && (dummy.leftShin.jumpAni >= 172 || dummy.leftShin.jumpAni <=160)) {
         dummy.body.onGround = true;
         dummy.body.position.y = (height-groundY)-((dummy.leftShin.y-dummy.body.position.y));
@@ -283,7 +283,7 @@ void dummies() {
   if (frameCount >= startDelay) {
 
     for (Skeleton dummy : dummies) {
-      if (!antiGrav) {
+      if (!antiGrav && dummy.leftShin.kickAni <= 0) {
         dummy.body.applyForce(new PVector(0, (0.4/9)*grav*timescale));
       }
     }
@@ -298,13 +298,14 @@ void environment() {
 PVector ppos = new PVector(0, 0, 0);
 float handVel = 0;
 float[] vels = new float[5];
+float[] pfingers = new float[10];
 
 void leap() {
   if (leap.getHands().size() > 0) {
     leapControl = true;
   }
   for (Hand hand : leap.getHands()) {
-
+    //println(hand.getOutstretchedFingers().size());
     Finger index = hand.getIndexFinger(); 
     posX = index.getPosition().x;
     posY = index.getPosition().y;
@@ -315,6 +316,13 @@ void leap() {
       for (Spring s : player.bones) {
 
         s.slamming = true;
+        s.runAni = 0;
+      }
+    }
+    if (index.getVelocity().div(1000).y < -1 && player.leftShin.slamAni == 0 && (hand.getOutstretchedFingers().size() == 2 || hand.getOutstretchedFingers().size() == 1) && player.body.position.y > height/2) {
+      for (Spring s : player.bones) {
+
+        s.jumping = true;
         s.runAni = 0;
       }
     }
@@ -347,7 +355,6 @@ void leap() {
           runFlipL = true;
         }
       }
-      println(hand.getRoll());
     }
     if ((posX >= (player.body.position.x)-50 && posX <= (player.body.position.x)+150 || (hand.getOutstretchedFingers().size() != 2 && hand.getOutstretchedFingers().size() != 1)) && leapControl) {
       for (Spring s : player.bones) {
@@ -355,7 +362,7 @@ void leap() {
       }
     }
     if (hand.getOutstretchedFingers().size() == 5) {
-      println(index.getVelocity().x);//index.getVelocity().x);
+      //println(index.getVelocity().x);//index.getVelocity().x);
       if (index.getVelocity().x < -4500 && player.leftShin.kickAni <= 0 && player.leftShin.slamAni <= 0 && player.leftShin.flipAni <= 0) {
 
         float minD = dist(player.body.position.x, player.body.position.y, dummies.get(0).body.position.x, dummies.get(0).body.position.y);
@@ -412,10 +419,31 @@ void leap() {
         }
       }
     }
-    float[] temp = vels;
-    for (int i = 0; i < 4; i++) {
-      vels[i+1] = temp[i];
+    if ((pfingers[pfingers.length-1] == 2 || pfingers[pfingers.length-1] == 1) && (hand.getOutstretchedFingers().size() >= 3) && blinkcd == 0) {
+      blink = true;
     }
+    if (blink) {
+      player.body.position.x = posX;
+      player.body.position.y = posY;
+      blinkcd = blinkcdc;
+      blink = false;
+    }
+    if (blinkcd > 0) {
+      fill(0, 229, 252, 255-((255/blinkcdc))*blinkcd);
+      PVector pos = player.body.position;
+      noStroke();
+      ellipse(pos.x-30, pos.y+15, 70, 150);
+      ellipse(pos.x+5, pos.y-40, 80, 130);
+      ellipse(pos.x+20, pos.y+25, 75, 140);
+      blinkcd--;
+    }
+    
+    float[] temp = pfingers;
+    for (int i = 0; i < pfingers.length-1; i++) {
+      pfingers[i+1] = temp[i];
+    }
+    pfingers[0] = hand.getOutstretchedFingers().size();
+
     vels[0] = ppos.x-hand.getPalmPosition().x;
     ppos = hand.getPalmPosition();
     float sum = 0;

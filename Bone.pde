@@ -95,7 +95,11 @@ class Bone {
         translate(position.x, position.y);
         imageMode(CENTER);
         rotate(tempAng+PI);
-        image(bodyTexture, 0, 0, 25*scale, bLen*scale);
+        if (play) {
+          image(pBody, 0, 0, 25*scale, bLen*scale);
+        } else {
+          image(bodyTexture, 0, 0, 25*scale, bLen*scale);
+        }
         popMatrix();
         rectMode(CORNER);
       }
@@ -125,11 +129,11 @@ class Bone {
     ang = a;
   }
   void update() {
-    if(collideCD > 0){
-      collideCD--;  
+    if (collideCD > 0) {
+      collideCD--;
     }
-    if(collideCD == 0){
-      collided = false;  
+    if (collideCD == 0) {
+      collided = false;
     }
 
     if (parent != null) {

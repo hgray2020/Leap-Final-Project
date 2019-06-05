@@ -35,6 +35,7 @@ class Spring {
   int flipAni = 0;
   boolean flipLeft = false;
   boolean play;
+  Bone bd;
 
 
 
@@ -65,6 +66,7 @@ class Spring {
 
 
   void update(float targetX, float targetY, Bone body) {
+    bd = body;
     if (parent != null) {
     } else {
       if (arm) {
@@ -298,6 +300,8 @@ class Spring {
   }
 
   void jump(Bone body) {
+    float ta = 195;
+    float tb = 192;
     if (body.ang > 270 + degrees(speed)) {
       body.ang -= degrees(speed);
     } else if (body.ang < 270 - degrees(speed)) {
@@ -314,26 +318,26 @@ class Spring {
       ang = radians(285);
     }
     if (!arm && left) {
-      if (jumpAni > 180) {
+      if (jumpAni > ta) {
         ang-=radians(5);
         body.position.y-=2*sin(ang-pang);
       }
-      if (jumpAni <= 180 && jumpAni > 172) {
+      if (jumpAni <= ta && jumpAni > tb) {
         ang+=radians(14.4);
       }
-      if (jumpAni == 172) {
+      if (jumpAni == tb) {
         //body.position.y+=10;
         if (y-10 < height-groundY) {
-          body.applyForce(new PVector(0, -30));
+          body.applyForce(new PVector(0, -20));
         }
       }
     }
     if (!arm && !left) {
-      if (jumpAni > 180) {
+      if (jumpAni > ta) {
         ang+=radians(5);
         body.position.y-=2*sin(ang-pang);
       }
-      if (jumpAni <= 180 && jumpAni > 172) {
+      if (jumpAni <= ta && jumpAni > tb) {
         ang-=radians(14.4);
       }
     }
@@ -575,6 +579,8 @@ class Spring {
         if ((slamLeft && dummy.body.position.x < body.position.x) || (!slamLeft && dummy.body.position.x > body.position.x)) {
           dummy.body.applyForce(new PVector(forcex*2, forcey*2));
           dummy.body.rot(a, new Point(player.body.position.x, player.leftShin.y), explodePow);
+          dummy.ragdoll = true;
+          dummy.ragdollcd = 180;
         }
       }
     }
@@ -762,8 +768,13 @@ class Spring {
     }
     if (kickAni == 190) {
       if (arm && left) {
-        player.body.velocity.y *= 0;
-        float a = atan2(body.position.y-kickY, body.position.x-kickX);
+        body.velocity.y *= 0;
+        float a = 0;
+        if (play) {
+          a = atan2(body.position.y-kickY, body.position.x-kickX);
+        } else {
+          a = atan2(body.position.y-player.body.top.y, body.position.x-player.body.position.x);
+        }
 
         float forcex = -1*(kickPow*cos(a));
         float forcey = -1*(kickPow*sin(a));
@@ -786,7 +797,11 @@ class Spring {
       translate(tp.x, tp.y);
       imageMode(CENTER);
       rotate(tempAng+PI);
-      image(bodyTexture, 0, 0, 25*scale, body.bLen*scale);
+      if (play) {
+        image(pBody, 0, 0, 25*scale, body.bLen*scale);
+      } else {
+        image(bodyTexture, 0, 0, 25*scale, body.bLen*scale);
+      }
       popMatrix();
       rectMode(CORNER);
       fill(boneColor);
@@ -801,7 +816,13 @@ class Spring {
         }
       } else { 
 
-        rect(body.position.x-(cosDegrees(body.ang)*(armLength*(2))), body.position.y-(sinDegrees(body.ang)*(armLength*(2))), 50*scale, 50*scale);
+        if (flipAni <= 0 && runAni <= 0 && (slamAni >= 104 || slamAni <= 0)) {
+          image(eHeadFront, body.position.x-(cosDegrees(body.ang)*(armLength*(2))), body.position.y-(sinDegrees(body.ang)*(armLength*(2))), 50*scale, 50*scale);
+        } else if ((flipAni > 0 && flipLeft) || (runAni > 0 && runLeft) || (slamAni < 104 && slamAni > 0 && slamLeft)) {
+          image(eHeadLeft, body.position.x-(cosDegrees(body.ang)*(armLength*(2))), body.position.y-(sinDegrees(body.ang)*(armLength*(2))), 50*scale, 50*scale);
+        } else if ((flipAni > 0 && !flipLeft) || (runAni > 0 && !runLeft) || (slamAni < 104 && !slamLeft)) {
+          image(eHeadRight, body.position.x-(cosDegrees(body.ang)*(armLength*(2))), body.position.y-(sinDegrees(body.ang)*(armLength*(2))), 50*scale, 50*scale);
+        }
       }
       rectMode(CORNER);
     }
@@ -868,7 +889,7 @@ class Spring {
       if (kickLeft && left) {
         stroke(255);
         strokeWeight(10);
-        point(x, y);
+
         if (play) {
           for (Skeleton s : dummies) {
             Bone b = s.body;
@@ -883,17 +904,42 @@ class Spring {
               b.rot(ang, new Point(x, y), 500);
               b.collided = true;
               b.collideCD = 60;
+              s.ragdoll = true;
+              s.ragdollcd = 180;
               println("ye");
               player.body.velocity.x *= -0.1;
               player.body.velocity.y = -22;
             }
+          }
+        } else {
+
+          Bone b = player.body;
+          //PVector[] points = {new PVector(b.top.x-5, b.top.y), new PVector(b.top.x+5, b.top.y), new PVector(b.bottom.x+5, b.bottom.y), new PVector(b.bottom.x-5, b.bottom.y)};
+          if (x < b.top.x+(armThick) && x > b.top.x-(armThick) && y > b.top.y && y < b.bottom.y && !b.collided && !b.ragdoll) {
+            for (Spring bo : player.bones) {
+              bo.kickAni = 1;
+              bo.flipping = true;
+              bo.flipLeft = true;
+            }
+
+            b.applyForce(parent.bd.velocity.mult(1.5));
+            b.rot(ang, new Point(x, y), 300);
+            health--;
+            b.collided = true;
+            b.collideCD = 60;
+            player.ragdoll = true;
+            player.ragdollcd = round(((maxHealth-health)/maxHealth)*200);
+            println(player.ragdollcd);
+            // println("ye");
+            player.body.velocity.x *= -0.1;
+            player.body.velocity.y = -22;
           }
         }
       }
       if (!kickLeft && !left) {
         stroke(255);
         strokeWeight(10);
-        point(x, y);
+
         if (play) {
           for (Skeleton s : dummies) {
             Bone b = s.body;
@@ -909,10 +955,35 @@ class Spring {
               b.rot(ang, new Point(x, y), 500);
               b.collided = true;
               b.collideCD = 60;
+              s.ragdoll = true;
+              s.ragdollcd = 180;
               println("ye");
               player.body.velocity.x *= -0.1;
               player.body.velocity.y = -22;
             }
+          }
+        } else {
+
+          Bone b = player.body;
+          //PVector[] points = {new PVector(b.top.x-5, b.top.y), new PVector(b.top.x+5, b.top.y), new PVector(b.bottom.x+5, b.bottom.y), new PVector(b.bottom.x-5, b.bottom.y)};
+          if (x < b.top.x+(armThick) && x > b.top.x-(armThick) && y > b.top.y && y < b.bottom.y && !b.collided && !b.ragdoll) {
+            for (Spring bo : player.bones) {
+              bo.kickAni = 1;
+              bo.flipping = true;
+              bo.flipLeft = true;
+            }
+
+            b.applyForce(parent.bd.velocity.mult(1.5));
+            b.rot(ang, new Point(x, y), 500);
+            health--;
+            b.collided = true;
+            b.collideCD = 60;
+            player.ragdoll = true;
+            player.ragdollcd = round(((maxHealth-health)/maxHealth)*200);
+            println(player.ragdollcd);
+            // println("ye");
+            player.body.velocity.x *= -0.1;
+            player.body.velocity.y = -22;
           }
         }
       }
@@ -1040,7 +1111,11 @@ class Spring {
     if (!play) {
       image(armTexture, scale*(-1*armThick/2), 0, armThick*scale, armLength*scale);
     } else {
-      image(parmText, scale*(-1*armThick/2), 0, armThick*scale, armLength*scale);
+      if (arm) {
+        image(pLeg, scale*(-1*armThick/2), 0, armThick*scale, armLength*scale);
+      } else {
+        image(pLeg, scale*(-1*armThick/2), 0, armThick*scale, armLength*scale);
+      }
     }
 
     popMatrix();
@@ -1083,7 +1158,15 @@ class Spring {
     if (!play) {
       image(armTexture, scale*(-1*armThick/2), 0, armThick*scale, armLength*scale);
     } else {
-      image(parmText, scale*(-1*armThick/2), 0, armThick*scale, armLength*scale);
+      if (arm) {
+        if (left) {
+          image(parmLeft, scale*(-1*armThick/2), 0, armThick*scale, armLength*scale);
+        } else {
+          image(parmText, scale*(-1*armThick/2), 0, armThick*scale, armLength*scale);
+        }
+      } else {
+        image(pLeg, scale*(-1*armThick/2), 0, armThick*scale, armLength*scale);
+      }
     }
 
     popMatrix();
